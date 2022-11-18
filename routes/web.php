@@ -3,7 +3,11 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
+use GuzzleHttp\Client;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use hisorange\BrowserDetect\Parser as Browser;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -19,13 +23,25 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index']);
 
 //Route auth
-Route::get('/login', [AuthController::class,'index'])->name('login')->middleware('guest');
+Route::get('/login', [AuthController::class, 'index'])->name('login')->middleware('guest');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout']);
 
+Route::get('/ip', function () {
+    $client = new Client(); //GuzzleHttp\Client
+    $url = "https://geolocation-db.com/json/geoip.php";
 
-//Route admin
-Route::group(['middleware' => ['auth', 'ceklevel:admin']], function() {
-    Route::get('/dashboard', [DashboardController::class,'index']);
+
+    $response = $client->request('GET', $url, [
+        'verify'  => false,
+    ]);
+
+    $responseBody = json_decode($response->getBody());
+    dd($responseBody->country_name);
 });
 
+
+//Route admin
+Route::group(['middleware' => ['auth', 'ceklevel:admin']], function () {
+    Route::get('/dashboard', [DashboardController::class, 'index']);
+});
